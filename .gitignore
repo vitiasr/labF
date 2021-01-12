@@ -1,0 +1,4 @@
+# PyCharm
+.idea/shelf/
+.idea/workspace.xml
+__pycache__/
