@@ -58,4 +58,3 @@ class Player(Drawable):
 
     def draw(self, surface: pygame.Surface) -> None:
         pygame.draw.rect(surface, BLACK, [self.x, self.y, 50, 50])
-        pass
