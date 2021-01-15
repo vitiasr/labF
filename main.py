@@ -29,7 +29,7 @@ if __name__ == '__main__':
         # Here, we clear the screen to white. Don't put other drawing commands
         # above this, or they will be erased with this command.
 
-        # If you want a background image, replace this clear with blit'ing the
+        # If you want a background image, replace this clear with blit-ing the
         # background image.
         screen.fill(WHITE)
 
