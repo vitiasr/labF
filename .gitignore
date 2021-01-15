@@ -2,3 +2,6 @@
 .idea/shelf/
 .idea/workspace.xml
 __pycache__/
+
+# VirtualEnv
+venv/
