@@ -5,13 +5,18 @@ from player import *
 from PIL import Image
 import numpy as np
 
+FLOOR = 0xFF
+STAIRS = 0x7F
+STAIRS_TOP = 0x80
+
 
 class Level:
     def __init__(self, background_image: str, bitmap: str):
         self.background = image.load(background_image)
         self.background_map = image.load(bitmap)  # TODO: Remove
+        # self.background_map.set_colorkey((0, 0, 0))
 
-        self.map = np.array(Image.open(bitmap).convert())  # "I" for 32-bit int
+        self.map = np.array(Image.open(bitmap).convert())
         self.map_width = self.map.shape[1]
         self.map_height = self.map.shape[0]
 
@@ -20,6 +25,8 @@ class Level:
 
         # List of pressed keys that move the player (i.e. K_LEFT, K_A, etc.)
         self.pressed_move_keys = []
+        # Whether the jump key is being held pressed
+        self.jump_key_down = False
 
     def get_horizontal_boundaries(self):
         pass
@@ -27,7 +34,12 @@ class Level:
     def get_player_pos(self) -> tuple:
         pass
 
-    def handle_input(self, event_list) -> bool:
+    def handle_input(self, event_list) -> None:
+        # Define horizontal and vertical deltas
+        dx = 0
+        dy = 0
+
+        # Check for input events
         for event in event_list:
             if event.type == KEYDOWN:
                 if event.key == K_LEFT or event.key == K_a \
@@ -35,106 +47,82 @@ class Level:
                         or event.key == K_UP or event.key == K_w \
                         or event.key == K_DOWN or event.key == K_s:
                     self.pressed_move_keys.append(event.key)
-                # elif event.key == K_SPACE:
-                #     if not self.jumping and not self.falling:
-                #         self.jumping = JUMPING
+                elif event.key == K_SPACE:
+                    if self.player.can_jump and self.player.jmp == 0 and self.player.fall == 0:
+                        self.jump_key_down = True
+                        self.player.jmp = JUMP_FORCE
             elif event.type == KEYUP:
                 if event.key == K_LEFT or event.key == K_a \
                         or event.key == K_RIGHT or event.key == K_d \
                         or event.key == K_UP or event.key == K_w \
                         or event.key == K_DOWN or event.key == K_s:
                     self.pressed_move_keys.remove(event.key)
+                elif event.key == K_SPACE:
+                    self.jump_key_down = False
 
-        moving_horizontally = moving_vertically = False
+        # React to the pressed move keys
+        x_reacted = y_reacted = False
         for key in reversed(self.pressed_move_keys):
-            if not moving_horizontally:
+            if not x_reacted:
                 if key == K_LEFT or key == K_a:
-                    moving_horizontally = True
-                    if self.player.left > MOVEMENT_SPEED:
-                        self.player.x -= MOVEMENT_SPEED
-                    else:
-                        self.player.left = 0
+                    x_reacted = True
+                    dx -= MOVEMENT_SPEED
                 elif key == K_RIGHT or key == K_d:
-                    moving_horizontally = True
-                    if self.player.right < self.map_width - MOVEMENT_SPEED:
-                        self.player.x += MOVEMENT_SPEED
-                    else:
-                        self.player.right = self.map_width
-            if self.player.vertical_movement and not moving_vertically:
+                    x_reacted = True
+                    dx += MOVEMENT_SPEED
+            if self.player.vertical_movement and not y_reacted:
                 if key == K_UP or key == K_w:
-                    moving_vertically = True
-                    if self.player.top > MOVEMENT_SPEED:
-                        self.player.y -= MOVEMENT_SPEED
-                    else:
-                        self.player.top = 0
+                    y_reacted = True
+                    dy -= MOVEMENT_SPEED
                 elif key == K_DOWN or key == K_s:
-                    moving_vertically = True
-                    if self.player.bottom < self.map_height - MOVEMENT_SPEED:
-                        self.player.y += MOVEMENT_SPEED
-                    else:
-                        self.player.bottom = self.map_height
+                    y_reacted = True
+                    dy += MOVEMENT_SPEED
 
-        # Gravity
-        self.fall()
-
-        # if self.jumping == JUMPING:
-        #     if self.jump_y < JUMP_HEIGHT:
-        #         self.jump_y += JUMP_SPEED
-        #         self.rect.y -= JUMP_SPEED
-        #     if self.jump_y >= JUMP_HEIGHT:
-        #         self.jumping = LANDING
-        #
-        # if self.jumping == LANDING:
-        #     if self.jump_y > 0:
-        #         self.jump_y -= JUMP_SPEED
-        #         self.rect.y += JUMP_SPEED
-        #     if self.jump_y <= 0:
-        #         self.jump_y = 0
-        #         self.jumping = NOT_JUMPING
-        #
-        # if self.jumping == NOT_JUMPING:
-        #     self.falling = True
-        #     if self.rect.bottom < MAGIC:
-        #         for x in range(self.rect.width):
-        #             for y in range(FALL_SPEED):
-        #                 if self.level.map[self.rect.bottom + y][self.rect.left + x][1] == 0xFF:
-        #                     self.falling = False
-        #     elif self.rect.top > MAGIC:
-        #         # TODO: Game over
-        #         self.initialize_position()
-        #
-        #     if self.falling:
-        #         self.rect.y += FALL_SPEED
-
-        # if self.jumping:
-        #     if self.jump_y < JUMP_HEIGHT:
-        #         self.jump_y += JUMP_SPEED
-        #         self.rect.y -= JUMP_SPEED
-        #     else:
-        #         self.jump_y = 0
-        #         self.jumping = False
-        # elif self.falling:
-        #     self.rect.y += FALL_SPEED
-
-        return True
-
-    def fall(self):
-        if self.player.fall_speed == 0:
-            self.player.fall_speed = FALL_SPEED
+        # React to the pressed jump key
+        if self.jump_key_down and self.player.jmp > 0 \
+                or self.player.jmp > JUMP_MIN_FORCE:
+            dy -= self.player.jmp
+            self.player.jmp -= FALL_ACCELERATION
         else:
-            self.player.fall_speed += FALL_ACCELERATION
+            self.player.jmp = 0
 
-        if self.player.bottom < self.map_height - self.player.fall_speed:
-            for y in range(self.player.fall_speed):
-                for x in range(self.player.width):
-                    if self.map[self.player.bottom + y][self.player.left + x][1] == 0xFF:
-                        self.player.fall_speed = 0
-                        self.player.bottom = self.player.bottom + y
-                        return
-        elif self.player.top > self.map_height:
-            self.game_over()
+        # React to gravitational pull
+        if self.player.jmp == 0:
+            if self.player.fall == 0:
+                self.player.fall = FALL_SPEED
+            else:
+                self.player.fall += FALL_ACCELERATION
+            dy += self.player.fall
+            if self.player.bottom < self.map_height - dy:
+                for y in range(dy):
+                    # Check if standing on floor
+                    pixels_on_floor = 0
+                    for x in range(self.player.width):
+                        if self.map[self.player.bottom + y][self.player.left + x] == FLOOR:
+                            pixels_on_floor += 1
+                            if pixels_on_floor >= self.player.width // 2:
+                                dy = dy - self.player.fall + y
+                                self.player.fall = 0
+                                break
+                    if self.player.fall == 0:
+                        break
 
-        self.player.y += self.player.fall_speed
+        # Move the player horizontally
+        self.player.x += dx
+        if self.player.left < 0:
+            self.player.left = 0
+        elif self.player.right > self.map_width:
+            self.player.right = self.map_width
+
+        # Move the player vertically
+        self.player.y += dy
+        if self.player.top < 0:
+            self.player.top = 0
+        elif self.player.fall > 0:
+            if self.player.top > self.map_height:
+                self.game_over()
+        elif self.player.bottom > self.map_height:
+            self.player.bottom = self.map_height
 
     def game_over(self):
         # TODO: Game over
