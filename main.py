@@ -2,8 +2,10 @@
 # Κωσταντίνος Χρυσικός (ΑΜ: 4164)
 # Βίκτωρ Ριζκόβ (ΑΜ: 4273)
 
-import pygame
-from level1 import Level1
+import pygame as pg
+from pygame import QUIT
+import level
+import player
 
 WINDOW_SIZE = 1167, 700
 WINDOW_FRAME_RATE = 60
@@ -16,27 +18,29 @@ RED = (255, 0, 0)
 
 
 def main():
-    pygame.display.init()
-    pygame.display.set_caption(WINDOW_CAPTION)
+    pg.display.init()
+    pg.display.set_caption(WINDOW_CAPTION)
     # pygame.key.set_repeat(1)
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode(WINDOW_SIZE)
+    clock = pg.time.Clock()
+    screen = pg.display.set_mode(WINDOW_SIZE)
 
-    level = Level1()
+    level.next_level()
+    player.init()
 
-    while handle_input(pygame.event.get(), level):
+    while handle_input(pg.event.get()):
         level.draw(screen)
-        pygame.display.flip()
+        player.draw(screen)
+        pg.display.flip()
         clock.tick(WINDOW_FRAME_RATE)
 
-    pygame.quit()
+    pg.quit()
 
 
-def handle_input(event_list, level) -> bool:
+def handle_input(event_list) -> bool:
     for event in event_list:
-        if event.type == pygame.QUIT:
+        if event.type == QUIT:
             return False
-    level.handle_input(event_list)
+    player.handle_input(event_list)
     return True
 
 
