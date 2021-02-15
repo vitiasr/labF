@@ -359,4 +359,4 @@ class Player(pg.sprite.Sprite):
 
     def draw(self, surface: pg.Surface):
         surface.blit(self.image, self.rect,
-                     [self.ani_frame * self.rect.w, self.ani * self.rect.h, *self.rect.size])
+                     pg.Rect(self.ani_frame * self.rect.w, self.ani * self.rect.h, *self.rect.size))

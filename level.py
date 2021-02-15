@@ -248,7 +248,7 @@ class Enemy(pg.sprite.Sprite):
 
     def draw(self, surface: pg.Surface):
         surface.blit(self.image, self.rect,
-                     [self.ani_frame * self.rect.w, self.ani * self.rect.h, *self.rect.size])
+                     pg.Rect(self.ani_frame * self.rect.w, self.ani * self.rect.h, *self.rect.size))
 
 
 class Collectible(pg.sprite.Sprite):
@@ -332,7 +332,8 @@ class Collectible(pg.sprite.Sprite):
                 else:
                     self.sparkle_frame_counter += 1
                 surface.blit(Collectible.sparkle_image, self.sparkle_rect,
-                             [self.sparkle_frame * self.sparkle_rect.w, 0, *self.sparkle_rect.size])
+                             pg.Rect(self.sparkle_frame * self.sparkle_rect.w, 0,
+                                     *self.sparkle_rect.size))
             else:
                 self.sparkle_counter += 1
 
