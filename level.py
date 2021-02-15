@@ -180,11 +180,11 @@ class Enemy(pg.sprite.Sprite):
         x, y = position
         for i in range(x - 1, x + 2, 2):
             if ENEMY_PATH_FIRST <= map[y][i] < ENEMY_PATH_LAST:
-                self.speed = map[y][i] - ENEMY_PATH_FIRST - 1
+                self.speed = map[y][i] - ENEMY_PATH_FIRST + 1
                 self.axis = self.Axis.HORIZONTAL
         for i in range(y - 1, y + 2, 2):
             if ENEMY_PATH_FIRST <= map[i][x] < ENEMY_PATH_LAST:
-                self.speed = map[i][x] - ENEMY_PATH_FIRST - 1
+                self.speed = map[i][x] - ENEMY_PATH_FIRST + 1
                 self.axis = self.Axis.VERTICAL
 
     def mutate(self, image: pg.Surface = None, rect: pg.Rect = None):

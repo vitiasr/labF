@@ -92,7 +92,9 @@ def main():
         if player.promoted:
             player.promoted = False
             current_level += 1
-            if not level.load(current_level):
+            if level.load(current_level):
+                player.initialize_position()
+            else:
                 # There are no more levels
                 game_over(success=True)
 
