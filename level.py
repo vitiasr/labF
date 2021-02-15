@@ -74,6 +74,9 @@ def load_assets():
         except pg.error as e:
             if i < 1:
                 raise e
+        except FileNotFoundError as e:
+            if i < 1:
+                raise e
 
 
 def load(level: int) -> bool:
@@ -90,6 +93,10 @@ def load(level: int) -> bool:
             map = np.array(Image.open(level_filename).convert("RGBA"))[:, :, 3]
             map_height, map_width = map.shape
         except pg.error as e:
+            if level == LEVEL_ONE:
+                raise e
+            return False
+        except FileNotFoundError as e:
             if level == LEVEL_ONE:
                 raise e
             return False
