@@ -90,6 +90,9 @@ def load(level: int) -> bool:
         level_filename = LEVEL_FILENAME.format(level)
         try:
             background = pg.image.load(level_filename).convert()
+            background_solid = pg.Surface(background.get_size())
+            background_solid.blit(background, (0, 0), special_flags=pg.BLEND_RGBA_MAX)
+            background = background_solid.convert()
             map = np.array(Image.open(level_filename).convert("RGBA"))[:, :, 3]
             map_height, map_width = map.shape
         except pg.error as e:
