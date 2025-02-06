@@ -2,7 +2,11 @@
 .idea/*
 !.idea/codeStyles/
 !.idea/inspectionProfiles/
+*.iml
 
 # Python
-venv/
+.venv/
 __pycache__/
+
+# Game
+/save
